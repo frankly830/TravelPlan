@@ -32,6 +32,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC',sans-
 .tbtn{padding:7px 15px;font-size:13px;font-weight:500;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer}
 .tbtn:hover{background:var(--surface2)}
 .tbtn.pri{background:var(--accent);color:#fff;border-color:var(--accent)}
+.save-indicator{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);padding:0 12px;border-radius:6px;background:var(--surface2);min-height:32px}
+.save-indicator.saving{color:var(--text)}
+.save-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1s infinite}
+.save-indicator.saved{color:var(--green)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
 #content{flex:1;padding:22px 24px;overflow-y:auto;padding-bottom:80px}
 .sec{display:none}.sec.on{display:block}
 
@@ -160,6 +165,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC',sans-
         <div class="lang-sw">
           <button class="lb on" id="lb-en" onclick="setLang('en')">EN</button>
           <button class="lb" id="lb-zh" onclick="setLang('zh')">中文</button>
+        </div>
+        <div class="save-indicator" id="save-indicator" title="Auto-saving changes...">
+          <span class="save-dot"></span>
+          <span id="save-text">Saving...</span>
         </div>
         <button class="tbtn pri" id="btn-add-day">+ Add Day</button>
       </div>
@@ -301,6 +310,27 @@ let checklist=[
   {id:12,cat:"Money",en:"Local currency / travel card",zh:"当地货币/旅行卡",done:false},
 ];
 let addItemDayId=null, addItemType=null;
+
+// ── SAVE INDICATOR ──
+let saveTimeout;
+function updateSaveIndicator(status='saving'){
+  const indicator=document.getElementById('save-indicator');
+  const text=document.getElementById('save-text');
+  clearTimeout(saveTimeout);
+  if(status==='saving'){
+    indicator.classList.remove('saved');
+    indicator.classList.add('saving');
+    text.textContent=lang==='en'?'Saving...':'保存中...';
+  }else if(status==='saved'){
+    indicator.classList.remove('saving');
+    indicator.classList.add('saved');
+    text.textContent=lang==='en'?'✓ Saved':'✓ 已保存';
+    saveTimeout=setTimeout(function(){
+      indicator.classList.remove('saved');
+      text.textContent='';
+    },2000);
+  }
+}
 
 // ── INIT ──
 document.getElementById('trip-title').addEventListener('input',function(){document.getElementById('sb-name').textContent=this.value;});
@@ -564,7 +594,7 @@ function renderCosts(){
     const dt=d.items.reduce(function(s,i){return s+(Number(i.cost)||0);},0);
     const pct=total>0?Math.round((dt/total)*100):0;
     const br=document.createElement('div');br.className='br';
-    br.innerHTML='<div class="brl"><span>'+d.date+' · '+d.label+'</span><span style="font-weight:600">¥'+dt.toLocaleString()+'</span></div><div class="brt"><div class="brf" style="width:'+pct+'%;background:#185FA5;border-radius:4px"></div></div>';
+    br.innerHTML='<div class="brl"><span>'+d.date+' · '+d.label+'</span><span style="font-weight:600">¥'+dt.toLocaleString()+'</span></div><div class="brt"><div class="brf" style="width:'+pct+'%;background:#185FA5"></div></div>';
     db.appendChild(br);
   });
   updateSidebar();
@@ -620,6 +650,7 @@ document.getElementById('chk-new-txt').addEventListener('keydown',function(e){if
 populateCheckCats();
 renderDays();
 updateSidebar();
+updateSaveIndicator();
 </script>
 <script src="storage.js"></script>
 </body>
