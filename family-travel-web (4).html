@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>FamTrip — Family Travel Planner</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f7f4ef;--surface:#fff;--surface2:#f0ede8;--border:#e0dbd2;
+  --text:#1a1714;--muted:#7a7570;--accent:#185FA5;--accent2:#0F6E56;
+  --warn:#854F0B;--pink:#993556;--purple:#533AB7;
+  --radius:12px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit}
+#app{display:flex;min-height:100vh}
+#sidebar{width:240px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+#sidebar-logo{padding:20px 20px 16px;border-bottom:1px solid var(--border)}
+#sidebar-logo h1{font-size:18px;font-weight:700}
+#sidebar-logo p{font-size:12px;color:var(--muted);margin-top:2px}
+#sidebar-nav{padding:12px 8px;flex:1}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;font-size:14px;font-weight:500;color:var(--muted);cursor:pointer;transition:.15s;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:#185FA511;color:var(--accent)}
+.nav-icon{font-size:18px;width:22px;text-align:center}
+#sidebar-budget{padding:16px;border-top:1px solid var(--border)}
+#sidebar-budget .label{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px}
+.budget-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:6px}
+.budget-fill{height:100%;border-radius:3px;background:var(--accent2);transition:width .4s}
+.budget-nums{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+#main{flex:1;display:flex;flex-direction:column;min-width:0}
+#topbar{padding:16px 28px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+#trip-title{font-size:20px;font-weight:700;border:none;background:none;color:var(--text);outline:none;flex:1;min-width:120px}
+#trip-title:focus{background:var(--surface2);border-radius:6px;padding:2px 8px}
+.top-btn{padding:8px 16px;font-size:13px;font-weight:500;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);transition:.15s}
+.top-btn:hover{background:var(--surface2)}
+.top-btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.top-btn.primary:hover{opacity:.9}
+#content{flex:1;padding:24px 28px;overflow-y:auto}
+.section{display:none}
+.section.active{display:block}
+
+/* LANG SWITCHER */
+.lang-switcher{display:flex;gap:4px;background:var(--surface2);border-radius:8px;padding:3px}
+.lang-btn{padding:4px 12px;font-size:12px;font-weight:600;border:none;border-radius:6px;background:none;color:var(--muted);transition:.15s;cursor:pointer}
+.lang-btn.active{background:var(--surface);color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+
+.day-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px;overflow:hidden}
+.day-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surface2)}
+.day-meta{display:flex;align-items:center;gap:10px}
+.day-badge{font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;background:#185FA511;color:var(--accent)}
+.day-title{font-size:15px;font-weight:600}
+.day-actions{display:flex;gap:6px}
+.icon-btn{background:none;border:none;font-size:16px;color:var(--muted);padding:4px 6px;border-radius:6px;transition:.15s}
+.icon-btn:hover{background:var(--border);color:var(--text)}
+.timeline{padding:0 18px}
+.tl-item{display:flex;gap:14px;padding:12px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.tl-item:last-child{border-bottom:none}
+.tl-time{font-size:12px;color:var(--muted);min-width:44px;padding-top:2px;font-weight:500}
+.tl-icon{font-size:20px;min-width:26px;text-align:center}
+.tl-body{flex:1}
+.tl-name{font-size:14px;font-weight:600;margin-bottom:2px}
+.tl-meta{font-size:12px;color:var(--muted)}
+.tl-cost{font-size:14px;font-weight:600;color:var(--accent2);min-width:60px;text-align:right}
+.tl-remove{background:none;border:none;color:var(--muted);font-size:12px;padding:2px 6px;border-radius:4px;cursor:pointer}
+.tl-remove:hover{background:var(--border)}
+.type-badge{display:inline-block;font-size:11px;padding:2px 7px;border-radius:5px;font-weight:500;margin-left:6px}
+.add-row{padding:12px 18px;display:flex;gap:6px;flex-wrap:wrap}
+.add-type-btn{padding:5px 12px;font-size:12px;border:1px solid var(--border);border-radius:20px;background:none;color:var(--muted);transition:.15s;font-weight:500}
+.add-type-btn:hover{border-color:var(--accent);color:var(--accent);background:#185FA508}
+.form-card{background:var(--surface2);border-radius:var(--radius);padding:16px;margin:0 18px 14px;border:1px solid var(--border)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.form-grid.three{grid-template-columns:1fr 1fr 1fr}
+.field label{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+.field input,.field select{width:100%;padding:7px 10px;font-size:13px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);outline:none;transition:.15s}
+.field input:focus,.field select:focus{border-color:var(--accent)}
+.form-actions{display:flex;gap:8px}
+.save-btn{padding:7px 18px;font-size:13px;font-weight:600;border:none;border-radius:8px;background:var(--accent);color:#fff}
+.cancel-btn{padding:7px 14px;font-size:13px;border:1px solid var(--border);border-radius:8px;background:none;color:var(--muted)}
+.add-day-row{display:flex;gap:8px;align-items:center;margin-top:4px}
+.add-day-row input{padding:8px 12px;font-size:14px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);outline:none;flex:1}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:20px}
+.metric-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.metric-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.metric-val{font-size:24px;font-weight:700}
+.metric-val.good{color:var(--accent2)}
+.metric-val.bad{color:#A32D2D}
+.cost-table{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px}
+.cost-table-head{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;background:var(--surface2);padding:10px 18px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border)}
+.cost-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:11px 18px;border-bottom:1px solid var(--border);font-size:13px;align-items:center}
+.cost-row:last-child{border-bottom:none;background:var(--surface2);font-weight:700}
+.cat-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+.bar-chart{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px}
+.bar-chart h3{font-size:14px;font-weight:600;margin-bottom:14px}
+.bar-row{margin-bottom:12px}
+.bar-label{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}
+.bar-track{height:10px;background:var(--border);border-radius:5px;overflow:hidden}
+.bar-fill{height:100%;border-radius:5px;transition:width .4s}
+.check-progress{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:16px;display:flex;align-items:center;gap:20px}
+.check-circle{width:64px;height:64px;position:relative;flex-shrink:0}
+.check-circle svg{transform:rotate(-90deg)}
+.check-info h2{font-size:20px;font-weight:700}
+.check-info p{font-size:13px;color:var(--muted);margin-top:2px}
+.check-group{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden}
+.check-group-header{padding:11px 16px;background:var(--surface2);font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border)}
+.check-item{display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid var(--border);transition:.15s}
+.check-item:last-child{border-bottom:none}
+.check-item:hover{background:var(--surface2)}
+.check-item input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--accent2)}
+.check-item label{flex:1;font-size:14px;cursor:pointer}
+.check-item.done label{text-decoration:line-through;color:var(--muted)}
+.check-item .del-check{background:none;border:none;color:var(--border);font-size:14px;cursor:pointer;padding:2px 5px;border-radius:4px}
+.check-item:hover .del-check{color:var(--muted)}
+.add-check-row{display:flex;gap:8px;padding:12px 16px;background:var(--surface2);border-top:1px solid var(--border);flex-wrap:wrap}
+.add-check-row input{flex:1;min-width:120px;padding:7px 10px;font-size:13px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);outline:none}
+.add-check-row select{padding:7px 10px;font-size:13px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text)}
+.add-check-row button{padding:7px 14px;font-size:13px;font-weight:600;border:none;border-radius:8px;background:var(--accent);color:#fff}
+.map-list{padding:14px 18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.map-list{padding:14px 18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.map-spot{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface2);border-radius:8px;font-size:13px}
+@media(max-width:680px){
+  #sidebar{display:none}
+  #content{padding:16px}
+  .form-grid,.form-grid.three{grid-template-columns:1fr}
+  .metrics{grid-template-columns:1fr 1fr}
+  #mobile-nav{display:flex!important}
+  #topbar{padding:12px 16px}
+}
+#mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);padding:6px 0;z-index:100}
+.mnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;font-weight:500;color:var(--muted);padding:6px 0;border:none;background:none;cursor:pointer}
+.mnav-item.active{color:var(--accent)}
+.mnav-item span:first-child{font-size:20px}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div id="sidebar-logo">
+      <h1>🧳 FamTrip</h1>
+      <p id="sb-trip-name">Paris Family Adventure</p>
+    </div>
+    <nav id="sidebar-nav">
+      <button class="nav-item active" data-tab="itinerary"><span class="nav-icon">🗺️</span><span data-t="nav_itinerary">Itinerary</span></button>
+
+      <button class="nav-item" data-tab="costs"><span class="nav-icon">💰</span><span data-t="nav_costs">Costs</span></button>
+      <button class="nav-item" data-tab="checklist"><span class="nav-icon">✅</span><span data-t="nav_checklist">Checklist</span></button>
+    </nav>
+    <div id="sidebar-budget">
+      <div class="label" data-t="budget_label">Budget</div>
+      <div class="budget-bar"><div class="budget-fill" id="sb-fill"></div></div>
+      <div class="budget-nums"><span id="sb-spent"></span><span id="sb-total"></span></div>
+    </div>
+  </aside>
+
+  <div id="main">
+    <div id="topbar">
+      <input id="trip-title" value="Beijing Family Adventure"/>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <div class="lang-switcher">
+          <button class="lang-btn active" onclick="setLang('en')">EN</button>
+          <button class="lang-btn" onclick="setLang('zh')">中文</button>
+        </div>
+        <button class="top-btn primary" onclick="openAddDay()" data-t="btn_add_day">+ Add day</button>
+      </div>
+    </div>
+
+    <div id="content">
+      <div class="section active" id="sec-itinerary">
+        <div id="days-container"></div>
+        <div id="add-day-form" style="display:none;margin-bottom:16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:10px">New day</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <input id="new-day-label" placeholder="e.g. Hutong Walk & Night Market" style="flex:1;padding:8px 12px;font-size:14px;border:1px solid var(--border);border-radius:8px;outline:none;background:var(--surface);color:var(--text)"/>
+          <button onclick="saveNewDay()" style="padding:8px 18px;font-size:13px;font-weight:600;border:none;border-radius:8px;background:var(--accent);color:#fff;cursor:pointer">Add</button>
+          <button onclick="closeAddDay()" style="padding:8px 14px;font-size:13px;border:1px solid var(--border);border-radius:8px;background:none;color:var(--muted);cursor:pointer">Cancel</button>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Suggestions:</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px" id="day-suggestions"></div>
+      </div>
+      </div>
+
+
+
+      <div class="section" id="sec-costs">
+        <div class="metrics">
+          <div class="metric-card"><div class="metric-label" data-t="m_spent">Total spent</div><div class="metric-val" id="m-spent">$0</div></div>
+          <div class="metric-card"><div class="metric-label" data-t="m_budget">Budget</div><div class="metric-val"><input id="budget-input" type="number" style="width:110px;font-size:20px;font-weight:700;border:none;background:none;color:var(--text);outline:none" value="5000" min="0"/></div></div>
+          <div class="metric-card"><div class="metric-label" data-t="m_remain">Remaining</div><div class="metric-val" id="m-remain">$0</div></div>
+          <div class="metric-card"><div class="metric-label" data-t="m_pct">% used</div><div class="metric-val" id="m-pct">0%</div></div>
+        </div>
+        <div class="cost-table">
+          <div class="cost-table-head"><span data-t="th_cat">Category</span><span data-t="th_items">Items</span><span data-t="th_amount">Amount</span><span data-t="th_share">Share</span></div>
+          <div id="cat-rows"></div>
+        </div>
+        <div class="bar-chart"><h3 data-t="cost_by_day">Cost by day</h3><div id="day-bars"></div></div>
+      </div>
+
+      <div class="section" id="sec-checklist">
+        <div class="check-progress">
+          <div class="check-circle">
+            <svg width="64" height="64" viewBox="0 0 64 64">
+              <circle cx="32" cy="32" r="26" fill="none" stroke="#e0dbd2" stroke-width="6"/>
+              <circle cx="32" cy="32" r="26" fill="none" stroke="#0F6E56" stroke-width="6"
+                stroke-dasharray="163.4" id="progress-arc" stroke-dashoffset="163.4" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="check-info">
+            <h2 id="check-fraction">0 / 0</h2>
+            <p id="check-pct">0%</p>
+            <p style="font-size:12px;color:var(--muted);margin-top:4px" data-t="check_label">Preparation checklist</p>
+          </div>
+        </div>
+        <div id="check-groups"></div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+          <div class="add-check-row">
+            <select id="new-check-cat"></select>
+            <input id="new-check-text" data-t-placeholder="check_placeholder" onkeydown="if(event.key==='Enter')addCheckItem()"/>
+            <button onclick="addCheckItem()" data-t="btn_add">Add</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<nav id="mobile-nav">
+  <button class="mnav-item active" data-tab="itinerary"><span>🗺️</span><span data-t="nav_itinerary">Itinerary</span></button>
+
+  <button class="mnav-item" data-tab="costs"><span>💰</span><span data-t="nav_costs">Costs</span></button>
+  <button class="mnav-item" data-tab="checklist"><span>✅</span><span data-t="nav_checklist">Checklist</span></button>
+</nav>
+
+<script>
+const T={
+  en:{
+    nav_itinerary:"Itinerary",nav_map:"Spots & Map",nav_costs:"Costs",nav_checklist:"Checklist",
+    btn_add_day:"+ Add day",btn_add:"Add",btn_cancel:"Cancel",btn_save:"Save",btn_remove:"remove",
+    budget_label:"Budget",m_spent:"Total spent",m_budget:"Budget",m_remain:"Remaining",m_pct:"% used",
+    th_cat:"Category",th_items:"Items",th_amount:"Amount",th_share:"Share",
+    cost_by_day:"Cost by day",map_coming:"Interactive map coming soon",map_sub:"Your visiting spots are listed below",
+    check_label:"Preparation checklist",check_pct_label:"complete",
+    day_placeholder:"Day label e.g. Museums & Markets",check_placeholder:"Add checklist item…",
+    cats:{transport:"Transport",attraction:"Attraction",food:"Food",accommodation:"Accommodation",misc:"Misc"},
+    check_cats:["Documents","Health","Kids","Packing","Money","Other"],
+    check_cat_labels:{Documents:"Documents",Health:"Health",Kids:"Kids",Packing:"Packing",Money:"Money",Other:"Other"},
+    total:"Total",
+    type_placeholder:"e.g. Eiffel Tower",dur_placeholder:"e.g. 2h",notes_placeholder:"Optional notes…",
+    dep_placeholder:"Departure",arr_placeholder:"Arrival",
+    f_name:"Name",f_time:"Time",f_duration:"Duration",f_cost:"Cost ($)",f_vehicle:"Vehicle",f_from:"From",f_to:"To",f_notes:"Notes",
+    remove_day_confirm:"Remove this day?",
+  },
+  zh:{
+    nav_itinerary:"行程",nav_map:"景点与地图",nav_costs:"费用",nav_checklist:"清单",
+    btn_add_day:"+ 添加天",btn_add:"添加",btn_cancel:"取消",btn_save:"保存",btn_remove:"删除",
+    budget_label:"预算",m_spent:"总花费",m_budget:"预算",m_remain:"剩余",m_pct:"已用%",
+    th_cat:"类别",th_items:"项目",th_amount:"金额",th_share:"占比",
+    cost_by_day:"每日费用",map_coming:"互动地图即将上线",map_sub:"您的景点列表如下",
+    check_label:"出行准备清单",check_pct_label:"已完成",
+    day_placeholder:"如：博物馆与市场",check_placeholder:"添加清单项目…",
+    cats:{transport:"交通",attraction:"景点",food:"餐饮",accommodation:"住宿",misc:"其他"},
+    check_cats:["证件","健康","儿童","行李","金钱","其他"],
+    check_cat_labels:{Documents:"证件",Health:"健康",Kids:"儿童",Packing:"行李",Money:"金钱",Other:"其他"},
+    total:"合计",
+    type_placeholder:"如：埃菲尔铁塔",dur_placeholder:"如：2小时",notes_placeholder:"备注（可选）…",
+    dep_placeholder:"出发地",arr_placeholder:"目的地",
+    f_name:"名称",f_time:"时间",f_duration:"时长",f_cost:"费用 ($)",f_vehicle:"交通工具",f_from:"出发",f_to:"到达",f_notes:"备注",
+    remove_day_confirm:"确定要删除这一天吗？",
+  }
+};
+let lang='en';
+function t(k){return T[lang][k]||T.en[k]||k}
+function tc(k){return T[lang].cats[k]||k}
+
+function setLang(l){
+  lang=l;
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase()===l||(l==='zh'&&b.textContent==='中文')));
+  document.querySelectorAll('[data-t]').forEach(el=>{ const k=el.getAttribute('data-t'); if(T[lang][k])el.textContent=T[lang][k]; });
+  document.querySelectorAll('[data-t-placeholder]').forEach(el=>{ const k=el.getAttribute('data-t-placeholder'); if(T[lang][k])el.placeholder=T[lang][k]; });
+  populateCheckCats();
+  renderDays();
+  renderChecklist();
+  if(document.getElementById('sec-costs').classList.contains('active'))renderCosts();
+  if(document.getElementById('sec-map').classList.contains('active'))renderMap();
+}
+
+const COLORS={transport:"#185FA5",attraction:"#0F6E56",food:"#854F0B",accommodation:"#533AB7",misc:"#993556"};
+const ICONS={flight:"✈️",train:"🚂",car:"🚗",bus:"🚌",ferry:"⛴️",walk:"🚶",transport:"🚀",attraction:"🏛️",food:"🍽️",accommodation:"🏨",misc:"📦"};
+const VEHICLES=['flight','train','car','bus','ferry','walk'];
+let budget=5000;
+  let days=[
+  {id:1,date:"Day 1",label:"Arrival & Tiananmen",items:[
+    {id:101,type:"transport",transportType:"flight",name:"Flight to Beijing",from:"Home Airport",to:"Beijing PEK",time:"08:00",duration:"3h",cost:800,notes:"Terminal 3"},
+    {id:102,type:"accommodation",name:"Check-in Hotel",time:"14:00",duration:"1h",cost:600,notes:"Near Wangfujing"},
+    {id:103,type:"attraction",name:"Tiananmen Square",time:"16:00",duration:"2h",cost:0,notes:"Free entry"},
+  ]},
+  {id:2,date:"Day 2",label:"Forbidden City & Temple of Heaven",items:[
+    {id:201,type:"attraction",name:"Forbidden City",time:"09:00",duration:"3h",cost:60,notes:"Book tickets in advance"},
+    {id:202,type:"food",name:"Lunch at Quanjude",time:"12:30",duration:"1h",cost:200,notes:"Famous Peking Duck"},
+    {id:203,type:"attraction",name:"Temple of Heaven",time:"14:30",duration:"2h",cost:35,notes:"Beautiful grounds"},
+    {id:204,type:"transport",transportType:"train",name:"Subway Line 2",from:"Qianmen",to:"Wangfujing",time:"17:00",duration:"20m",cost:4,notes:""},
+  ]},
+  {id:3,date:"Day 3",label:"Great Wall & Summer Palace",items:[
+    {id:301,type:"transport",transportType:"bus",name:"Bus to Great Wall",from:"Hotel",to:"Mutianyu",time:"07:30",duration:"1.5h",cost:80,notes:"Mutianyu section"},
+    {id:302,type:"attraction",name:"Great Wall of China",time:"09:30",duration:"3h",cost:65,notes:"Cable car recommended for kids"},
+    {id:303,type:"food",name:"Local Restaurant Lunch",time:"13:30",duration:"1h",cost:120,notes:"Near Mutianyu"},
+    {id:304,type:"attraction",name:"Summer Palace",time:"15:30",duration:"2h",cost:50,notes:"Boat ride on Kunming Lake"},
+  ]},
+];
+let checklist=[
+  {id:1,cat:"Documents",text_en:"Passports (valid 6+ months)",text_zh:"护照（有效期6个月以上）",done:false},
+  {id:2,cat:"Documents",text_en:"Travel insurance policy",text_zh:"旅行保险单",done:false},
+  {id:3,cat:"Documents",text_en:"Flight & hotel bookings printout",text_zh:"机票和酒店预订打印件",done:false},
+  {id:4,cat:"Health",text_en:"Vaccination records",text_zh:"疫苗接种记录",done:false},
+  {id:5,cat:"Health",text_en:"Prescription medications",text_zh:"处方药",done:false},
+  {id:6,cat:"Health",text_en:"First aid kit",text_zh:"急救箱",done:false},
+  {id:7,cat:"Kids",text_en:"Kids entertainment / tablets",text_zh:"儿童娱乐/平板电脑",done:false},
+  {id:8,cat:"Kids",text_en:"Snacks for the journey",text_zh:"旅途零食",done:false},
+  {id:9,cat:"Kids",text_en:"Child car seat (if needed)",text_zh:"儿童座椅（如需）",done:false},
+  {id:10,cat:"Packing",text_en:"Sunscreen & hats",text_zh:"防晒霜和帽子",done:false},
+  {id:11,cat:"Packing",text_en:"Comfortable walking shoes",text_zh:"舒适步行鞋",done:false},
+  {id:12,cat:"Packing",text_en:"Chargers & power banks",text_zh:"充电器和移动电源",done:false},
+  {id:13,cat:"Money",text_en:"Notify bank of travel dates",text_zh:"通知银行出行日期",done:false},
+  {id:14,cat:"Money",text_en:"Local currency / travel card",text_zh:"当地货币/旅行卡",done:false},
+];
+let addItemState=null;
+
+function populateCheckCats(){
+  const sel=document.getElementById('new-check-cat');
+  if(!sel)return;
+  const cats=T[lang].check_cats;
+  sel.innerHTML=cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+}
+
+function switchTab(tab){
+  document.querySelectorAll('.nav-item,.mnav-item').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec-'+tab).classList.add('active');
+  if(tab==='costs')renderCosts();
+  if(tab==='map')renderMap();
+  if(tab==='checklist')renderChecklist();
+}
+document.querySelectorAll('.nav-item,.mnav-item').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+document.getElementById('trip-title').addEventListener('input',e=>document.getElementById('sb-trip-name').textContent=e.target.value);
+document.getElementById('budget-input').addEventListener('input',e=>{budget=Number(e.target.value)||0;updateSidebar();});
+
+function updateSidebar(){
+  const spent=allItems().reduce((s,i)=>s+(Number(i.cost)||0),0);
+  const pct=budget>0?Math.min((spent/budget)*100,100):0;
+  document.getElementById('sb-fill').style.width=pct+'%';
+  document.getElementById('sb-fill').style.background=pct>90?'#A32D2D':'#0F6E56';
+  document.getElementById('sb-spent').textContent='$'+spent.toLocaleString();
+  document.getElementById('sb-total').textContent='/ $'+budget.toLocaleString();
+  document.getElementById('m-spent').textContent='$'+spent.toLocaleString();
+  const rem=budget-spent;
+  const el=document.getElementById('m-remain');
+  el.textContent='$'+rem.toLocaleString();
+  el.className='metric-val '+(rem>=0?'good':'bad');
+  document.getElementById('m-pct').textContent=(budget>0?Math.round((spent/budget)*100):0)+'%';
+}
+function allItems(){return days.flatMap(d=>d.items)}
+
+function renderDays(){
+  const c=document.getElementById('days-container');
+  c.innerHTML='';
+  days.forEach(day=>{
+    const sorted=[...day.items].sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+    const div=document.createElement('div');
+    div.className='day-card';
+    div.innerHTML=`
+      <div class="day-header">
+        <div class="day-meta">
+          <span class="day-badge" contenteditable="true" spellcheck="false" onblur="updateDayDate(${day.id},this.textContent.trim())" style="outline:none;cursor:text" title="Click to edit">${day.date}</span>
+          <span class="day-title" contenteditable="true" spellcheck="false" onblur="updateDayLabel(${day.id},this.textContent.trim())" style="outline:none;cursor:text" title="Click to edit">${day.label}</span>
+        </div>
+        <button class="icon-btn" onclick="removeDay(${day.id})">🗑️</button>
+      </div>
+      <div class="timeline">
+        ${sorted.map(item=>{
+          const ic=item.type==='transport'?(ICONS[item.transportType]||'🚀'):ICONS[item.type]||'📌';
+          const col=COLORS[item.type]||'#666';
+          const badge=`<span class="type-badge" style="background:${col}18;color:${col}">${tc(item.type)}</span>`;
+          const route=item.type==='transport'&&item.from?` · ${item.from} → ${item.to}`:'';
+          const notes=item.notes?` · ${item.notes}`:'';
+          return `<div class="tl-item">
+            <div class="tl-time" contenteditable="true" spellcheck="false" onblur="updateItemField(${day.id},${item.id},'time',this.textContent.trim())" style="outline:none;cursor:text;min-width:44px" title="Click to edit time">${item.time||'—'}</div>
+            <div class="tl-icon">${ic}</div>
+            <div class="tl-body">
+              <div class="tl-name"><span contenteditable="true" spellcheck="false" onblur="updateItemField(${day.id},${item.id},'name',this.textContent.trim())" style="outline:none;cursor:text" title="Click to edit name">${item.name}</span>${badge}</div>
+              <div class="tl-meta">⏱️ <span contenteditable="true" spellcheck="false" onblur="updateItemField(${day.id},${item.id},'duration',this.textContent.trim())" style="outline:none;cursor:text" title="Click to edit duration">${item.duration}</span>${route}<span contenteditable="true" spellcheck="false" onblur="updateItemField(${day.id},${item.id},'notes',this.textContent.trim())" style="outline:none;cursor:text;color:var(--muted)" title="Click to edit notes">${item.notes||'+ notes'}</span></div>
+            </div>
+            <div style="text-align:right">
+              <div class="tl-cost">$<span contenteditable="true" spellcheck="false" onblur="updateItemField(${day.id},${item.id},'cost',this.textContent.trim())" style="outline:none;cursor:text" title="Click to edit cost">${Number(item.cost).toLocaleString()}</span></div>
+              <button class="tl-remove" onclick="removeItem(${day.id},${item.id})">${t('btn_remove')}</button>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+      ${addItemState===day.id?renderAddForm(day.id):''}
+      <div class="add-row">
+        ${['transport','attraction','food','accommodation','misc'].map(tp=>`
+          <button class="add-type-btn" onclick="openAdd(${day.id},'${tp}')">${ICONS[tp]} + ${tc(tp)}</button>
+        `).join('')}
+      </div>`;
+    c.appendChild(div);
+  });
+  updateSidebar();
+}
+
+function renderAddForm(dayId){
+  const isT=window._newItemType==='transport';
+  return `<div class="form-card">
+    <div class="form-grid${isT?' three':''}">
+      <div class="field"><label>${t('f_name')}</label><input id="fi-name" placeholder="${t('type_placeholder')}"/></div>
+      <div class="field"><label>${t('f_time')}</label><input id="fi-time" type="time" value="09:00"/></div>
+      <div class="field"><label>${t('f_duration')}</label><input id="fi-dur" placeholder="${t('dur_placeholder')}"/></div>
+      <div class="field"><label>${t('f_cost')}</label><input id="fi-cost" type="number" value="0" min="0"/></div>
+      ${isT?`
+        <div class="field"><label>${t('f_vehicle')}</label><select id="fi-tt">${VEHICLES.map(v=>`<option value="${v}">${ICONS[v]} ${v}</option>`).join('')}</select></div>
+        <div class="field"><label>${t('f_from')}</label><input id="fi-from" placeholder="${t('dep_placeholder')}"/></div>
+        <div class="field"><label>${t('f_to')}</label><input id="fi-to" placeholder="${t('arr_placeholder')}"/></div>
+      `:''}
+      <div class="field" style="grid-column:1/-1"><label>${t('f_notes')}</label><input id="fi-notes" placeholder="${t('notes_placeholder')}"/></div>
+    </div>
+    <div class="form-actions">
+      <button class="save-btn" onclick="saveItem(${dayId})">${t('btn_save')}</button>
+      <button class="cancel-btn" onclick="cancelAdd()">${t('btn_cancel')}</button>
+    </div>
+  </div>`;
+}
+
+function updateDayDate(id,v){days=days.map(d=>d.id===id?{...d,date:v||d.date}:d);updateSidebar();}
+function updateDayLabel(id,v){days=days.map(d=>d.id===id?{...d,label:v||d.label}:d);updateSidebar();}
+function updateItemField(dayId,itemId,field,v){
+  if(field==='cost')v=Number(v.replace(/[^0-9.]/g,''))||0;
+  days=days.map(d=>d.id===dayId?{...d,items:d.items.map(i=>i.id===itemId?{...i,[field]:v}:i)}:d);
+  updateSidebar();
+}addItemState=dayId;window._newItemType=type;renderDays();setTimeout(()=>{const el=document.getElementById('fi-name');if(el)el.focus();},50);}
+function cancelAdd(){addItemState=null;window._newItemType=null;renderDays();}
+function saveItem(dayId){
+  const name=document.getElementById('fi-name')?.value?.trim();
+  if(!name)return;
+  const item={id:Date.now(),type:window._newItemType||'misc',name,
+    time:document.getElementById('fi-time')?.value||'',
+    duration:document.getElementById('fi-dur')?.value||'',
+    cost:Number(document.getElementById('fi-cost')?.value)||0,
+    notes:document.getElementById('fi-notes')?.value||'',
+    transportType:document.getElementById('fi-tt')?.value||'',
+    from:document.getElementById('fi-from')?.value||'',
+    to:document.getElementById('fi-to')?.value||'',
+  };
+  days=days.map(d=>d.id===dayId?{...d,items:[...d.items,item]}:d);
+  addItemState=null;window._newItemType=null;renderDays();
+}
+function removeItem(dayId,itemId){days=days.map(d=>d.id===dayId?{...d,items:d.items.filter(i=>i.id!==itemId)}:d);renderDays();}
+function removeDay(id){if(!confirm(t('remove_day_confirm')))return;days=days.filter(d=>d.id!==id);renderDays();}
+
+const DAY_EXAMPLES={
+  en:['Hutong Walk & Night Market','798 Art District & Sanlitun','Olympic Park & Bird\'s Nest','Lama Temple & Drum Tower','Beijing Zoo & Happy Valley'],
+  zh:['胡同漫步 & 夜市','798艺术区 & 三里屯','奥林匹克公园 & 鸟巢','雍和宫 & 鼓楼','北京动物园 & 欢乐谷']
+};
+function openAddDay(){
+  const form=document.getElementById('add-day-form');
+  form.style.display='block';
+  const inp=document.getElementById('new-day-label');
+  inp.value='';
+  inp.onkeydown=function(e){if(e.key==='Enter')saveNewDay();if(e.key==='Escape')closeAddDay();};
+  setTimeout(()=>inp.focus(),50);
+  const sug=document.getElementById('day-suggestions');
+  sug.innerHTML=DAY_EXAMPLES[lang].map(e=>`<button style="padding:4px 10px;font-size:12px;border:1px solid var(--border);border-radius:16px;background:var(--surface);color:var(--muted);cursor:pointer" onclick="pickSuggestion('${e.replace(/'/g,"\\'")}')">${e}</button>`).join('');
+}
+function pickSuggestion(v){document.getElementById('new-day-label').value=v;document.getElementById('new-day-label').focus();}
+function closeAddDay(){document.getElementById('add-day-form').style.display='none';}
+function saveNewDay(){
+  const inp=document.getElementById('new-day-label');
+  const label=(inp.value||'').trim();
+  if(!label)return;
+  days.push({id:Date.now(),date:'Day '+(days.length+1),label:label,items:[]});
+  closeAddDay();
+  renderDays();
+}
+document.getElementById('new-day-label').addEventListener('keydown',e=>{if(e.key==='Enter')saveNewDay();if(e.key==='Escape')closeAddDay();});
+
+function renderCosts(){
+  const items=allItems();
+  const total=items.reduce((s,i)=>s+(Number(i.cost)||0),0);
+  const cats={transport:0,attraction:0,food:0,accommodation:0,misc:0};
+  const catCount={transport:0,attraction:0,food:0,accommodation:0,misc:0};
+  items.forEach(i=>{cats[i.type]=(cats[i.type]||0)+(Number(i.cost)||0);catCount[i.type]=(catCount[i.type]||0)+1;});
+  document.getElementById('cat-rows').innerHTML=Object.entries(cats).map(([cat,amt])=>`
+    <div class="cost-row">
+      <span><span class="cat-dot" style="background:${COLORS[cat]}"></span>${ICONS[cat]} ${tc(cat)}</span>
+      <span style="color:var(--muted)">${catCount[cat]}</span>
+      <span style="font-weight:600">$${amt.toLocaleString()}</span>
+      <span style="color:var(--muted)">${total>0?Math.round((amt/total)*100):0}%</span>
+    </div>
+  `).join('')+`<div class="cost-row"><span>${t('total')}</span><span style="color:var(--muted)">${items.length}</span><span>$${total.toLocaleString()}</span><span>100%</span></div>`;
+  document.getElementById('day-bars').innerHTML=days.map(d=>{
+    const dt=d.items.reduce((s,i)=>s+(Number(i.cost)||0),0);
+    const pct=total>0?Math.round((dt/total)*100):0;
+    return `<div class="bar-row">
+      <div class="bar-label"><span>${d.date} · ${d.label}</span><span style="font-weight:600">$${dt.toLocaleString()}</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:var(--accent)"></div></div>
+    </div>`;
+  }).join('');
+  updateSidebar();
+}
+
+// ── CANVAS MAP ──
+const DAY_COLORS=['#185FA5','#0F6E56','#854F0B','#533AB7','#993556','#B5540A','#1a7a6e'];
+let mapState={zoom:1,panX:0,panY:0,dragging:false,dragStart:null,highlighted:-1,spots:[],pins:[]};
+
+function renderMap(){
+  const spots=allItems().filter(i=>['attraction','food','accommodation'].includes(i.type));
+  // assign day index for color coding
+  const spotsFull=spots.map(s=>{
+    const dayIdx=days.findIndex(d=>d.items.some(it=>it.id===s.id));
+    return{...s,dayIdx};
+  });
+  mapState.spots=spotsFull;
+  mapState.highlighted=-1;
+
+  // spots list cards
+  const sl=document.getElementById('spots-list');
+  if(!spotsFull.length){
+    sl.innerHTML=`<p style="color:var(--muted);font-size:13px;padding:14px 18px">${lang==='zh'?'暂无景点 — 请在行程中添加景点、餐饮或住宿':'No spots yet — add attractions, food or accommodation in the itinerary.'}</p>`;
+    drawMap();return;
+  }
+  sl.innerHTML=`<div style="padding:12px 16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px">
+    ${spotsFull.map((s,i)=>{
+      const col=DAY_COLORS[s.dayIdx>=0?s.dayIdx%DAY_COLORS.length:0];
+      return`<div class="map-spot" style="cursor:pointer;border-left:3px solid ${col}" onclick="highlightPin(${i})">
+        <span>${ICONS[s.type]}</span>
+        <div><div style="font-weight:600;font-size:13px">${s.name}</div>
+        <div style="font-size:11px;color:var(--muted)">${tc(s.type)}${s.notes?' · '+s.notes:''}</div></div>
+      </div>`;
+    }).join('')}
+  </div>`;
+  layoutAndDraw();
+}
+
+function layoutAndDraw(){
+  const spots=mapState.spots;
+  if(!spots.length){drawMap();return;}
+  // grid layout — place spots in a force-spread grid
+  const cols=Math.ceil(Math.sqrt(spots.length));
+  mapState.pins=spots.map((s,i)=>{
+    const col=DAY_COLORS[s.dayIdx>=0?s.dayIdx%DAY_COLORS.length:0];
+    // spread with some variance so same-day spots cluster loosely
+    const gx=(i%cols)+.5+(Math.sin(i*7.3)*.3);
+    const gy=(Math.floor(i/cols))+.5+(Math.cos(i*3.7)*.3);
+    return{x:gx,y:gy,label:s.name,icon:ICONS[s.type]||'📍',col,type:s.type};
+  });
+  // fit to canvas
+  const xs=mapState.pins.map(p=>p.x),ys=mapState.pins.map(p=>p.y);
+  mapState._bounds={minX:Math.min(...xs),maxX:Math.max(...xs),minY:Math.min(...ys),maxY:Math.max(...ys)};
+  mapState.zoom=1;mapState.panX=0;mapState.panY=0;
+  drawMap();
+}
+
+function drawMap(){
+  const cv=document.getElementById('map-canvas');
+  if(!cv)return;
+  const W=cv.parentElement.clientWidth||600,H=360;
+  cv.width=W;cv.height=H;
+  const ctx=cv.getContext('2d');
+  // background - styled like a simple map
+  ctx.fillStyle='#e8f0e4';ctx.fillRect(0,0,W,H);
+  // grid lines
+  ctx.strokeStyle='#d4e0d0';ctx.lineWidth=1;
+  for(let x=0;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  // subtle roads
+  ctx.strokeStyle='#fff';ctx.lineWidth=3;
+  [[0,H*.4,W,H*.4],[0,H*.7,W,H*.65],[W*.3,0,W*.35,H],[W*.6,0,W*.55,H],[0,H*.2,W*.4,H*.3]].forEach(([x1,y1,x2,y2])=>{
+    ctx.beginPath();ctx.moveTo(x1+mapState.panX*.1,y1+mapState.panY*.1);ctx.lineTo(x2+mapState.panX*.1,y2+mapState.panY*.1);ctx.stroke();
+  });
+
+  const pins=mapState.pins;
+  if(!pins.length){
+    ctx.fillStyle='#888';ctx.font='14px sans-serif';ctx.textAlign='center';
+    ctx.fillText(lang==='zh'?'暂无景点':'No spots to display',W/2,H/2);return;
+  }
+  const b=mapState._bounds;
+  const padX=80,padY=60;
+  const scaleX=(b.maxX===b.minX)?1:(W-padX*2)/(b.maxX-b.minX);
+  const scaleY=(b.maxY===b.minY)?1:(H-padY*2)/(b.maxY-b.minY);
+  const scale=Math.min(scaleX,scaleY)*mapState.zoom;
+  function toScreen(gx,gy){
+    const cx=W/2+mapState.panX,cy=H/2+mapState.panY;
+    const midX=(b.minX+b.maxX)/2,midY=(b.minY+b.maxY)/2;
+    return[cx+(gx-midX)*scale,cy+(gy-midY)*scale];
+  }
+  // draw connecting lines between pins (route)
+  if(pins.length>1){
+    ctx.strokeStyle='rgba(24,95,165,.25)';ctx.lineWidth=2;ctx.setLineDash([6,4]);
+    ctx.beginPath();
+    pins.forEach((p,i)=>{const[x,y]=toScreen(p.x,p.y);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+    ctx.stroke();ctx.setLineDash([]);
+  }
+  // draw pins
+  pins.forEach((p,i)=>{
+    const[x,y]=toScreen(p.x,p.y);
+    const hl=mapState.highlighted===i;
+    const r=hl?22:17;
+    // shadow
+    ctx.shadowColor='rgba(0,0,0,.18)';ctx.shadowBlur=hl?12:6;
+    // circle
+    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle=p.col;ctx.fill();
+    ctx.strokeStyle='#fff';ctx.lineWidth=2.5;ctx.stroke();
+    ctx.shadowBlur=0;
+    // icon
+    ctx.font=`${hl?16:13}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(p.icon,x,y);
+    // label
+    ctx.font=`${hl?'600 ':''}12px -apple-system,sans-serif`;
+    ctx.fillStyle='#222';ctx.textBaseline='top';
+    const lx=x,ly=y+r+4;
+    const tw=ctx.measureText(p.label).width;
+    ctx.fillStyle='rgba(255,255,255,.85)';
+    ctx.fillRect(lx-tw/2-3,ly-1,tw+6,15);
+    ctx.fillStyle=hl?p.col:'#333';
+    ctx.fillText(p.label,lx,ly);
+  });
+}
+
+function highlightPin(i){
+  mapState.highlighted=i;drawMap();
+  document.querySelectorAll('.map-spot').forEach((el,j)=>{
+    el.style.background=j===i?'var(--surface2)':'';
+  });
+}
+
+// pan & zoom
+(function setupMapInteraction(){
+  document.addEventListener('DOMContentLoaded',()=>{},false);
+  function getCanvas(){return document.getElementById('map-canvas');}
+  document.addEventListener('mousedown',e=>{if(e.target===getCanvas()){mapState.dragging=true;mapState.dragStart={x:e.clientX,y:e.clientY};}});
+  document.addEventListener('mousemove',e=>{
+    if(mapState.dragging){mapState.panX+=e.clientX-mapState.dragStart.x;mapState.panY+=e.clientY-mapState.dragStart.y;mapState.dragStart={x:e.clientX,y:e.clientY};drawMap();}
+  });
+  document.addEventListener('mouseup',()=>mapState.dragging=false);
+  document.addEventListener('wheel',e=>{
+    if(e.target===getCanvas()){e.preventDefault();mapState.zoom=Math.max(.4,Math.min(4,mapState.zoom*(e.deltaY<0?1.1:.91)));drawMap();}
+  },{passive:false});
+  document.addEventListener('touchstart',e=>{if(e.target===getCanvas()&&e.touches.length===1){mapState.dragging=true;mapState.dragStart={x:e.touches[0].clientX,y:e.touches[0].clientY};}});
+  document.addEventListener('touchmove',e=>{
+    if(mapState.dragging&&e.touches.length===1){mapState.panX+=e.touches[0].clientX-mapState.dragStart.x;mapState.panY+=e.touches[0].clientY-mapState.dragStart.y;mapState.dragStart={x:e.touches[0].clientX,y:e.touches[0].clientY};drawMap();}
+  });
+  document.addEventListener('touchend',()=>mapState.dragging=false);
+})();
+
+function renderChecklist(){
+  const done=checklist.filter(c=>c.done).length;
+  const total=checklist.length;
+  const pct=total>0?Math.round((done/total)*100):0;
+  document.getElementById('check-fraction').textContent=`${done} / ${total}`;
+  document.getElementById('check-pct').textContent=`${pct}% ${t('check_pct_label')}`;
+  document.getElementById('progress-arc').setAttribute('stroke-dashoffset',163.4-(163.4*(pct/100)));
+  const grouped={};
+  checklist.forEach(c=>{if(!grouped[c.cat])grouped[c.cat]=[];grouped[c.cat].push(c);});
+  const catLabels=T[lang].check_cat_labels;
+  document.getElementById('check-groups').innerHTML=Object.entries(grouped).map(([cat,items])=>`
+    <div class="check-group">
+      <div class="check-group-header">${catLabels[cat]||cat}</div>
+      ${items.map(item=>`
+        <div class="check-item${item.done?' done':''}" id="ci-${item.id}">
+          <input type="checkbox" id="cb-${item.id}" ${item.done?'checked':''} onchange="toggleCheck(${item.id})"/>
+          <label for="cb-${item.id}">${lang==='zh'?(item.text_zh||item.text_en):(item.text_en||item.text_zh)}</label>
+          <button class="del-check" onclick="removeCheck(${item.id})">✕</button>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+function toggleCheck(id){checklist=checklist.map(c=>c.id===id?{...c,done:!c.done}:c);renderChecklist();}
+function removeCheck(id){checklist=checklist.filter(c=>c.id!==id);renderChecklist();}
+function addCheckItem(){
+  const text=document.getElementById('new-check-text').value.trim();
+  if(!text)return;
+  const cat=document.getElementById('new-check-cat').value;
+  const item={id:Date.now(),cat,done:false};
+  if(lang==='zh'){item.text_zh=text;item.text_en=text;}
+  else{item.text_en=text;item.text_zh=text;}
+  checklist.push(item);
+  document.getElementById('new-check-text').value='';
+  renderChecklist();
+}
+
+populateCheckCats();
+renderDays();
+updateSidebar();
+</script>
+</body>
+</html>
