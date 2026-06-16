@@ -1,14 +1,27 @@
-// Auto-save to localStorage on any data change
+// Auto-save to localStorage on any data change with debouncing
+let saveTimeout;
+let saveDebouncedTimeout;
+
 function saveState() {
-  updateSaveIndicator('saving');
-  localStorage.setItem('travelplan_days', JSON.stringify(window.days));
-  localStorage.setItem('travelplan_checklist', JSON.stringify(window.checklist));
-  localStorage.setItem('travelplan_budget', window.budget);
-  localStorage.setItem('travelplan_title', document.getElementById('trip-title').value);
-  // Show saved status
-  setTimeout(function(){
+  // Clear existing timers
+  clearTimeout(saveDebouncedTimeout);
+  clearTimeout(saveTimeout);
+  
+  // Show saving indicator immediately on first change
+  if (!document.getElementById('save-indicator').classList.contains('saving')) {
+    updateSaveIndicator('saving');
+  }
+  
+  // Debounce the actual save and show "saved" message
+  saveDebouncedTimeout = setTimeout(function(){
+    localStorage.setItem('travelplan_days', JSON.stringify(window.days));
+    localStorage.setItem('travelplan_checklist', JSON.stringify(window.checklist));
+    localStorage.setItem('travelplan_budget', window.budget);
+    localStorage.setItem('travelplan_title', document.getElementById('trip-title').value);
+    
+    // Show saved status
     updateSaveIndicator('saved');
-  }, 300);
+  }, 800);
 }
 
 function loadState() {
@@ -32,19 +45,18 @@ window.addEventListener('load', function() {
   updateSaveIndicator('saved');
 });
 
-// Patch the render functions to auto-save
-const originalRenderDays = window.renderDays;
-window.renderDays = function() {
-  originalRenderDays.apply(this, arguments);
-  saveState();
+// Patch the render functions to NOT trigger save (they just update UI)
+// We'll let the document event listeners handle saves instead
+const originalRenderCosts = window.renderCosts;
+window.renderCosts = function() {
+  originalRenderCosts.apply(this, arguments);
 };
 
 const originalRenderChecklist = window.renderChecklist;
 window.renderChecklist = function() {
   originalRenderChecklist.apply(this, arguments);
-  saveState();
 };
 
-// Save on various user actions
+// Save on user actions with debounce
 document.addEventListener('change', saveState);
 document.addEventListener('input', saveState);
