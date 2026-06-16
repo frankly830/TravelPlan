@@ -182,9 +182,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC',sans-
 
       <div class="sec" id="sec-costs">
         <div class="metrics">
-          <div class="mc"><div class="ml" data-t="m_spent">Total Spent</div><div class="mv" id="m-spent">$0</div></div>
-          <div class="mc"><div class="ml" data-t="m_budget">Budget</div><div class="mv"><input id="budget-inp" type="number" value="8000" style="width:100px;font-size:20px;font-weight:700;border:none;background:none;color:var(--text);outline:none"/></div></div>
-          <div class="mc"><div class="ml" data-t="m_remain">Remaining</div><div class="mv" id="m-remain">$0</div></div>
+          <div class="mc"><div class="ml" data-t="m_spent">Total Spent</div><div class="mv" id="m-spent">¥0</div></div>
+          <div class="mc"><div class="ml" data-t="m_budget">Budget</div><div class="mv"><input id="budget-inp" type="number" value="50000" style="width:100px;font-size:20px;font-weight:700;border:none;background:none;outline:none;color:inherit"/></div></div>
+          <div class="mc"><div class="ml" data-t="m_remain">Remaining</div><div class="mv" id="m-remain">¥0</div></div>
           <div class="mc"><div class="ml" data-t="m_pct">% Used</div><div class="mv" id="m-pct">0%</div></div>
         </div>
         <div class="ctbl">
@@ -242,7 +242,7 @@ const TR={
     chk_labels:{Documents:"Documents",Health:"Health",Kids:"Kids",Packing:"Packing",Money:"Money",Other:"Other"},
     day_sugs:["Hutong Walk & Night Market","798 Art District & Sanlitun","Olympic Park & Bird's Nest","Lama Temple & Drum Tower","Beijing Zoo & Happy Valley"],
     del_day:"Remove this day and all its items?",
-    f:{name:"Name",time:"Time",dur:"Duration",cost:"Cost ($)",veh:"Vehicle",from:"From",to:"To",notes:"Notes"},
+    f:{name:"Name",time:"Time",dur:"Duration",cost:"Cost (¥)",veh:"Vehicle",from:"From",to:"To",notes:"Notes"},
     ph:{name:"e.g. Great Wall",dur:"e.g. 2h",notes:"Optional…",dep:"Departure",arr:"Arrival",day:"e.g. Hutong Walk & Night Market",chk:"Add checklist item…"}
   },
   zh:{nav_itin:"行程",nav_costs:"费用",nav_check:"清单",lbl_budget:"预算",
@@ -256,7 +256,7 @@ const TR={
     chk_labels:{Documents:"证件",Health:"健康",Kids:"儿童",Packing:"行李",Money:"金钱",Other:"其他"},
     day_sugs:["胡同漫步 & 夜市","798艺术区 & 三里屯","奥林匹克公园 & 鸟巢","雍和宫 & 鼓楼","北京动物园 & 欢乐谷"],
     del_day:"确定删除这一天及其所有项目？",
-    f:{name:"名称",time:"时间",dur:"时长",cost:"费用 ($)",veh:"交通工具",from:"出发",to:"到达",notes:"备注"},
+    f:{name:"名称",time:"时间",dur:"时长",cost:"费用 (¥)",veh:"交通工具",from:"出发",to:"到达",notes:"备注"},
     ph:{name:"如：长城",dur:"如：2小时",notes:"备注…",dep:"出发地",arr:"目的地",day:"如：胡同漫步 & 夜市",chk:"添加清单项目…"}
   }
 };
@@ -266,24 +266,24 @@ function L(k){const p=k.split('.');let o=TR[lang];for(const s of p){o=o?.[s];}re
 // ── DATA ──
 const COLORS={transport:"#185FA5",attraction:"#0F6E56",food:"#854F0B",accommodation:"#533AB7",misc:"#993556"};
 const ICONS={flight:"✈️",train:"🚂",car:"🚗",bus:"🚌",ferry:"⛴️",walk:"🚶",transport:"🚀",attraction:"🏛️",food:"🍽️",accommodation:"🏨",misc:"📦"};
-let budget=8000;
+let budget=50000;
 let days=[
   {id:1,date:"Day 1",label:"Arrival & Tiananmen",items:[
-    {id:101,type:"transport",veh:"flight",name:"Flight to Beijing",from:"Home Airport",to:"Beijing PEK",time:"08:00",dur:"3h",cost:800,notes:"Terminal 3"},
-    {id:102,type:"accommodation",veh:"",name:"Check-in Hotel",from:"",to:"",time:"14:00",dur:"1h",cost:600,notes:"Near Wangfujing"},
+    {id:101,type:"transport",veh:"flight",name:"Flight to Beijing",from:"Home Airport",to:"Beijing PEK",time:"08:00",dur:"3h",cost:5000,notes:"Terminal 3"},
+    {id:102,type:"accommodation",veh:"",name:"Check-in Hotel",from:"",to:"",time:"14:00",dur:"1h",cost:4000,notes:"Near Wangfujing"},
     {id:103,type:"attraction",veh:"",name:"Tiananmen Square",from:"",to:"",time:"16:00",dur:"2h",cost:0,notes:"Free entry"},
   ]},
   {id:2,date:"Day 2",label:"Forbidden City & Temple of Heaven",items:[
-    {id:201,type:"attraction",veh:"",name:"Forbidden City",from:"",to:"",time:"09:00",dur:"3h",cost:60,notes:"Book tickets in advance"},
-    {id:202,type:"food",veh:"",name:"Quanjude Peking Duck",from:"",to:"",time:"12:30",dur:"1h",cost:200,notes:"Famous restaurant"},
-    {id:203,type:"attraction",veh:"",name:"Temple of Heaven",from:"",to:"",time:"14:30",dur:"2h",cost:35,notes:"Beautiful grounds"},
-    {id:204,type:"transport",veh:"train",name:"Subway Line 2",from:"Qianmen",to:"Wangfujing",time:"17:00",dur:"20m",cost:4,notes:""},
+    {id:201,type:"attraction",veh:"",name:"Forbidden City",from:"",to:"",time:"09:00",dur:"3h",cost:400,notes:"Book tickets in advance"},
+    {id:202,type:"food",veh:"",name:"Quanjude Peking Duck",from:"",to:"",time:"12:30",dur:"1h",cost:1200,notes:"Famous restaurant"},
+    {id:203,type:"attraction",veh:"",name:"Temple of Heaven",from:"",to:"",time:"14:30",dur:"2h",cost:200,notes:"Beautiful grounds"},
+    {id:204,type:"transport",veh:"train",name:"Subway Line 2",from:"Qianmen",to:"Wangfujing",time:"17:00",dur:"20m",cost:20,notes:""},
   ]},
   {id:3,date:"Day 3",label:"Great Wall & Summer Palace",items:[
-    {id:301,type:"transport",veh:"bus",name:"Bus to Great Wall",from:"Hotel",to:"Mutianyu",time:"07:30",dur:"1.5h",cost:80,notes:"Mutianyu section"},
-    {id:302,type:"attraction",veh:"",name:"Great Wall of China",from:"",to:"",time:"09:30",dur:"3h",cost:65,notes:"Cable car for kids"},
-    {id:303,type:"food",veh:"",name:"Local Restaurant",from:"",to:"",time:"13:30",dur:"1h",cost:120,notes:"Near Mutianyu"},
-    {id:304,type:"attraction",veh:"",name:"Summer Palace",from:"",to:"",time:"15:30",dur:"2h",cost:50,notes:"Boat on Kunming Lake"},
+    {id:301,type:"transport",veh:"bus",name:"Bus to Great Wall",from:"Hotel",to:"Mutianyu",time:"07:30",dur:"1.5h",cost:500,notes:"Mutianyu section"},
+    {id:302,type:"attraction",veh:"",name:"Great Wall of China",from:"",to:"",time:"09:30",dur:"3h",cost:400,notes:"Cable car for kids"},
+    {id:303,type:"food",veh:"",name:"Local Restaurant",from:"",to:"",time:"13:30",dur:"1h",cost:800,notes:"Near Mutianyu"},
+    {id:304,type:"attraction",veh:"",name:"Summer Palace",from:"",to:"",time:"15:30",dur:"2h",cost:300,notes:"Boat on Kunming Lake"},
   ]},
 ];
 let checklist=[
@@ -446,7 +446,7 @@ function renderDays(){
       rm.addEventListener('click',function(){
         day.items=day.items.filter(function(i){return i.id!==item.id;});renderDays();
       });
-      cright.appendChild(document.createTextNode('$'));cright.appendChild(ce);cright.appendChild(rm);
+      cright.appendChild(document.createTextNode('¥'));cright.appendChild(ce);cright.appendChild(rm);
       row.appendChild(te);row.appendChild(ie);row.appendChild(body);row.appendChild(cright);
       tl.appendChild(row);
     });
@@ -534,11 +534,11 @@ function updateSidebar(){
   const pct=budget>0?Math.min((spent/budget)*100,100):0;
   document.getElementById('sb-fill').style.width=pct+'%';
   document.getElementById('sb-fill').style.background=pct>90?'#A32D2D':'#0F6E56';
-  document.getElementById('sb-spent').textContent='$'+spent.toLocaleString();
-  document.getElementById('sb-total').textContent='/ $'+budget.toLocaleString();
-  document.getElementById('m-spent').textContent='$'+spent.toLocaleString();
+  document.getElementById('sb-spent').textContent='¥'+spent.toLocaleString();
+  document.getElementById('sb-total').textContent='/ ¥'+budget.toLocaleString();
+  document.getElementById('m-spent').textContent='¥'+spent.toLocaleString();
   const rem=budget-spent;
-  const re=document.getElementById('m-remain');re.textContent='$'+rem.toLocaleString();re.className='mv '+(rem>=0?'g':'r');
+  const re=document.getElementById('m-remain');re.textContent='¥'+rem.toLocaleString();re.className='mv '+(rem>=0?'g':'r');
   document.getElementById('m-pct').textContent=(budget>0?Math.round((spent/budget)*100):0)+'%';
 }
 
@@ -553,18 +553,18 @@ function renderCosts(){
   Object.keys(cats).forEach(function(cat){
     const amt=cats[cat];const pct=total>0?Math.round((amt/total)*100):0;
     const row=document.createElement('div');row.className='cr';
-    row.innerHTML='<span><span class="cdot" style="background:'+COLORS[cat]+'"></span>'+ICONS[cat]+' '+L('cats.'+cat)+'</span><span style="color:var(--muted)">'+cnt[cat]+'</span><span style="font-weight:600">$'+amt.toLocaleString()+'</span><span style="color:var(--muted)">'+pct+'%</span>';
+    row.innerHTML='<span><span class="cdot" style="background:'+COLORS[cat]+'"></span>'+ICONS[cat]+' '+L('cats.'+cat)+'</span><span style="color:var(--muted)">'+cnt[cat]+'</span><span>¥'+amt.toLocaleString()+'</span><span>'+pct+'%</span>';
     r.appendChild(row);
   });
   const tot=document.createElement('div');tot.className='cr';
-  tot.innerHTML='<span>'+L('total')+'</span><span style="color:var(--muted)">'+items.length+'</span><span>$'+total.toLocaleString()+'</span><span>100%</span>';
+  tot.innerHTML='<span>'+L('total')+'</span><span style="color:var(--muted)">'+items.length+'</span><span>¥'+total.toLocaleString()+'</span><span>100%</span>';
   r.appendChild(tot);
   const db=document.getElementById('day-bars');db.innerHTML='';
   days.forEach(function(d){
     const dt=d.items.reduce(function(s,i){return s+(Number(i.cost)||0);},0);
     const pct=total>0?Math.round((dt/total)*100):0;
     const br=document.createElement('div');br.className='br';
-    br.innerHTML='<div class="brl"><span>'+d.date+' · '+d.label+'</span><span style="font-weight:600">$'+dt.toLocaleString()+'</span></div><div class="brt"><div class="brf" style="width:'+pct+'%;background:var(--accent)"></div></div>';
+    br.innerHTML='<div class="brl"><span>'+d.date+' · '+d.label+'</span><span style="font-weight:600">¥'+dt.toLocaleString()+'</span></div><div class="brt"><div class="brf" style="width:'+pct+'%;background:#185FA5;border-radius:4px"></div></div>';
     db.appendChild(br);
   });
   updateSidebar();
@@ -623,4 +623,3 @@ updateSidebar();
 </script>
 </body>
 </html>
-
