@@ -1,9 +1,14 @@
 // Auto-save to localStorage on any data change
 function saveState() {
+  updateSaveIndicator('saving');
   localStorage.setItem('travelplan_days', JSON.stringify(window.days));
   localStorage.setItem('travelplan_checklist', JSON.stringify(window.checklist));
   localStorage.setItem('travelplan_budget', window.budget);
   localStorage.setItem('travelplan_title', document.getElementById('trip-title').value);
+  // Show saved status
+  setTimeout(function(){
+    updateSaveIndicator('saved');
+  }, 300);
 }
 
 function loadState() {
@@ -24,6 +29,7 @@ window.addEventListener('load', function() {
   renderDays();
   updateSidebar();
   populateCheckCats();
+  updateSaveIndicator('saved');
 });
 
 // Patch the render functions to auto-save
